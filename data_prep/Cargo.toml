@@ -1,5 +1,5 @@
 [package]
-name = "unnamed_chatgpt_project"
+name = "data_prep"
 version = "0.1.0"
 authors = ["bvanroll <beppe.vanrolleghem@gmail.com>"]
 edition = "2018"
@@ -7,10 +7,6 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+rfd = "0.10.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.91"
-rfd = "0.10.0"
-async-openai = "0.5.0"
-rand = "0.8"
-tokio = { version = "1", features = ["full"] }
-rust-bert = "0.20.0"
