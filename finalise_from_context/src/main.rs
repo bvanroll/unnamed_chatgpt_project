@@ -40,14 +40,22 @@ fn main() {
     println!("there are {} humans to process", l - i);
 
     for mut human in &mut Humans {
-        let (gender, age, country, job) = getHumanFromContext(human.bio.clone(), human.firstName.clone());
-        human.gender = gender;
-        human.age = age;
-        human.country = country;
-        human.job = job;
-        println!("just did {} at index {}", human.firstName.clone(), i);
-        println!("There are {} humans left to process", l - i);
+        //let (gender, age, country, job) = getHumanFromContext(
+        match getHumanFromContext(human.bio.clone(), human.firstName.clone()) {
+            Ok((gender, age, country, job)) => {
+                human.gender = gender;
+                human.age = age;
+                human.country = country;
+                human.job = job;
+                println!("just did {} at index {}", human.firstName.clone(), i);
+            },
+            Err(e) => {
+                println!("skipping {} because of {}", human.firstName.clone(), e.to_string())
+            }
+        }
+        println!("There are {} humans left to process", l - (i+1));
         i = i+1;
+        if (i > 100) { break; }
     }
 
     let serialized: String = serde_json::to_string(&Humans).unwrap();
@@ -56,7 +64,7 @@ fn main() {
 }
 
 
-fn getHumanFromContext(context: String, firstName: String) -> (String, String, String, String) {
+fn getHumanFromContext(context: String, firstName: String) -> Result<(String, String, String, String), Box<dyn std::error::Error>> {
     //TODO use the other ai to get answers from a given context
     let bertconfig = QuestionAnsweringConfig::new(
         ModelType::Bert,
@@ -68,7 +76,7 @@ fn getHumanFromContext(context: String, firstName: String) -> (String, String, S
         false,
         None,
     );
-    let mut model = QuestionAnsweringModel::new(bertconfig).unwrap();
+    let mut model = QuestionAnsweringModel::new(bertconfig)?;
     let mut genderQuestion = QaInput {
         question: format!("What is {}'s gender?", firstName),
         context: context.clone()
@@ -88,11 +96,11 @@ fn getHumanFromContext(context: String, firstName: String) -> (String, String, S
 
     let mut answers = model.predict(&[genderQuestion, ageQuestion, countryQuestion, jobQuestion], 1, 32);
     let mut looper = answers.iter();
-    let mut gender = looper.next().unwrap().first().unwrap().answer.clone();
-    let mut age = looper.next().unwrap().first().unwrap().answer.clone();
-    let mut country= looper.next().unwrap().first().unwrap().answer.clone();
-    let mut job = looper.next().unwrap().first().unwrap().answer.clone();
+    let mut gender = looper.next().expect("euh").first();
+    let mut age = looper.next().expect("euh").first();
+    let mut country= looper.next().expect("euh").first();
+    let mut job = looper.next().expect("euh").first();
 
 
-    return (gender, age, country, job)
+    return Ok((gender.unwrap().answer.clone(), age.unwrap().answer.clone(), country.unwrap().answer.clone(), job.unwrap().answer.clone()))
 }
