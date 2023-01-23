@@ -5,7 +5,9 @@ use std::io::{BufReader, Read, Write};
 use async_openai::{Client, types::{CreateCompletionRequestArgs}};
 use serde::{Serialize, Deserialize};
 use rand::Rng;
-use rust_bert::roberta::RobertaForQuestionAnswering;
+
+
+
 
 #[derive(Deserialize)]
 struct MiniHuman {
@@ -25,6 +27,8 @@ struct Human {
 
 #[tokio::main]
 async fn main() {
+
+
     let current_path = std::env::current_dir().unwrap();
     let res = rfd::FileDialog::new().set_directory(&current_path).pick_file().unwrap();
     let mut file = File::open(res.as_path()).unwrap();
@@ -35,6 +39,7 @@ async fn main() {
     let save_res = rfd::FileDialog::new().set_directory(&current_path).save_file().unwrap();
     let mut client = Client::new();
     while MiniHumans.len() > 1 {
+        println!("still got {} to go", MiniHumans.len());
         let (mut firstName, mut firstGender) = getRngName(&mut MiniHumans);
         let (mut lastName, mut lastGender) = getRngName(&mut MiniHumans);
         if firstName == "" || lastName == "" || (firstGender == "" && lastGender == "") { continue }
@@ -45,7 +50,6 @@ async fn main() {
             Ok(h) => Humans.push(h),
             Err(e) => println!("some err occured: {:?}", e.to_string()),
         };
-        break;
     }
     let serialized: String = serde_json::to_string(&Humans).unwrap();
     let mut file = File::create(save_res.as_path()).unwrap();
@@ -73,8 +77,12 @@ async fn getHuman(client: &mut Client, firstName: String, lastName: String, gend
     let res = client.completions().create(request).await;
     let response = String::from(format!("{}", res?.choices.first().unwrap().text));
 
-    let (finalGender, age, country, job) = getHumanFromContext(response.clone());
-
+    //let (finalGender, age, country, job) = getHumanFromContext(response.clone(), firstName.clone());
+    //NOTE rust bert won't function async, reading these in in a final rust project instead of fucking around with mixing stuff that has huge warning signs when running in async and async programming
+    let finalGender = "".to_string();
+    let age = "".to_string();
+    let country = "".to_string();
+    let job = "".to_string();
     return Ok(Human{
         firstName: firstName,
         lastName: lastName,
@@ -86,13 +94,23 @@ async fn getHuman(client: &mut Client, firstName: String, lastName: String, gend
     });
 }
 //returns in order: gender, age, country, job
-fn getHumanFromContext(context: String, firstName: String) -> (String, String, String, String) {
-    //TODO use the other ai to get answers from a given context
-    let qa_model = QuestionAnsweringModel::new(Default::default())?;
-    let gender = String::from(format!("What is {}'s gender?", firstname));
-    let age = String::from(format!("What is {}'s age?", firstName));
-    let country= String::from(format!("Where does {} live?", firstName));
-    let job = String::from(format!("What is {}'s job?", firstName));
-    let answers = qa_model.predict(&[QaInput { question, context }], 1, 32);
-    return ("".to_string(), "".to_string(), "".to_string(), "".to_string())
-}
+// fn getHumanFromContext(context: String, firstName: String) -> (String, String, String, String) {
+//     //
+//     let bertconfig = QuestionAnsweringConfig::new(
+//         ModelType::Bert,
+//         RemoteResource::from_pretrained(BertModelResources::BERT_QA),
+//         RemoteResource::from_pretrained(BertConfigResources::BERT_QA),
+//         RemoteResource::from_pretrained(BertVocabResources::BERT_QA),
+//         None, //merges resource only relevant with ModelType::Roberta
+//         false,
+//         false,
+//         None,
+//     );
+//     let mut model = QuestionAnsweringModel::new(bertconfig).unwrap();
+//     let gender = String::from(format!("What is {}'s gender?", firstName));
+//     let age = String::from(format!("What is {}'s age?", firstName));
+//     let country= String::from(format!("Where does {} live?", firstName));
+//     let job = String::from(format!("What is {}'s job?", firstName));
+//     let answers = model.predict(&[QaInput { question: gender, context: context }], 1, 32);
+//     return ("".to_string(), "".to_string(), "".to_string(), "".to_string())
+// }
