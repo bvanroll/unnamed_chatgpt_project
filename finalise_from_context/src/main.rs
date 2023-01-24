@@ -91,7 +91,7 @@ fn main() {
         }
         match looper.next().expect("euh").first() {
             Ok(country) => h.country = country.answer.clone(),
-            Err(e) => println!("failed to get country for {}: {:?}", human.firstname.clone(), e)
+            Err(e) => println!("failed to get country for {}: {:?}", human.firstName.clone(), e)
         }
         match looper.next().expect("euh").first() {
             Ok(job) => h.job = job.answer.clone(),
