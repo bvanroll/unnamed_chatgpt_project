@@ -81,22 +81,39 @@ fn main() {
     for mut human in &mut Humans {
         println!("{}'s attributes ", human.firstName.clone());
         let mut h = human.clone();
-        match looper.next().expect("euh").first() {
-            Ok(gender) => h.gender = gender.answer.clone(),
-            Err(e) => println!("failed to get gender for {}: {:?}", human.firstName.clone(), e)
+        match looper.next() {
+            Some(item) =>  match item.first() {
+                Some(gender) => h.gender = gender.answer.clone(),
+                None => println!("failed to get gender for {}", human.firstName.clone())
+            },
+            None => { println!("euh"); }
         }
-        match looper.next().expect("euh").first() {
-            Ok(age) => h.age = age.answer.clone(),
-            Err(e) => println!("failed to get age for {}: {:?}", human.firstName.clone(), e)
+
+        match looper.next() {
+            Some(item) =>  match item.first() {
+                Some(age) => h.age = age.answer.clone(),
+                None => println!("failed to get age for {}", human.firstName.clone())
+
+            },
+            None => { println!("euh"); }
         }
-        match looper.next().expect("euh").first() {
-            Ok(country) => h.country = country.answer.clone(),
-            Err(e) => println!("failed to get country for {}: {:?}", human.firstName.clone(), e)
+
+        match looper.next() {
+            Some(item) =>  match item.first() {
+                Some(country) => h.country = country.answer.clone(),
+                None => println!("failed to get country for {}", human.firstName.clone())
+            },
+            None => { println!("euh"); }
         }
-        match looper.next().expect("euh").first() {
-            Ok(job) => h.job = job.answer.clone(),
-            Err(e) => println!("failed to get job for {}: {:?}", human.firstName.clone(), e)
+
+        match looper.next() {
+            Some(item) =>  match item.first() {
+                Some(job) => h.job= job.answer.clone(),
+                None => println!("failed to get job for {}", human.firstName.clone())
+            },
+            None => { println!("euh"); }
         }
+
         finishedHumans.push(h);
         println!("{} to go", l - i);
         i = i+1;
